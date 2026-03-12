@@ -2,47 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MenuItem;
+use App\Models\InventoryLog;
 use Illuminate\Http\Request;
 
-class MenuController extends Controller
+class InventoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        //
+        return response()->json(MenuItem::with('category')->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function adjust(Request $request, MenuItem $menuItem)
     {
-        //
+        $request->validate([
+            'change' => 'required|integer',
+            'reason' => 'required|string',
+        ]);
+
+        $menuItem->increment('stock', $request->change);
+
+        InventoryLog::create([
+            'menu_item_id' => $menuItem->id,
+            'change' => $request->change,
+            'reason' => $request->reason,
+        ]);
+
+        return response()->json($menuItem);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function logs()
     {
-        //
+        return response()->json(InventoryLog::with('menuItem')->latest()->get());
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    
 }

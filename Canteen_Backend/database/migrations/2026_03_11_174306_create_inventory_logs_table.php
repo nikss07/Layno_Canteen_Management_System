@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('inventory_logs', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+           $table->id();
+        $table->foreignId('menu_item_id')->constrained()->onDelete('cascade');
+        $table->integer('change');
+        $table->string('reason')->nullable();
+        $table->timestamps();
         });
     }
 
