@@ -103,9 +103,9 @@ export default function Login() {
 
           <div className="mt-6 p-4 bg-gray-50 rounded-xl text-xs text-gray-500 space-y-1">
             <p className="font-medium text-gray-600 mb-2">Demo Accounts:</p>
-            <p>👑 Admin: admin@canteen.com / password</p>
-            <p>💰 Cashier: cashier@canteen.com / password</p>
-            <p>🧑 Customer: customer@canteen.com / password</p>
+            <p>👑 Admin: karyll@admin.com / css@1234</p>
+            <p>💰 Cashier: junaica@cashier.com / css@1234</p>
+            <p>🧑 Customer: mel@customer.com / css@1234</p>
           </div>
         </div>
       </div>
