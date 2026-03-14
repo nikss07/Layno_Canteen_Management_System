@@ -1,17 +1,74 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+// ============================================================
+// FILE: src/components/dashboard/OrderTrendChart.jsx
+// PURPOSE: Dark-themed area chart — weekly order trends
+// ============================================================
+
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const MOCK = [
+  { week: 'W1', orders: 45 }, { week: 'W2', orders: 62 }, { week: 'W3', orders: 58 },
+  { week: 'W4', orders: 74 }, { week: 'W5', orders: 89 }, { week: 'W6', orders: 95 }, { week: 'W7', orders: 108 },
+];
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{
+      background: '#1e2330', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 12, padding: '10px 14px', fontSize: 12, fontWeight: 700,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    }}>
+      <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>{label}</p>
+      <p style={{ color: '#34d399' }}>{payload[0].value} orders</p>
+    </div>
+  );
+};
 
 export default function OrderTrendChart({ data = [] }) {
+  const chartData = data.length ? data : MOCK;
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <h3 className="font-bold text-gray-900 mb-4">Order Volume (Last 30 Days)</h3>
-      <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip />
-          <Line type="monotone" dataKey="count" stroke="#f97316" strokeWidth={2.5} dot={{ fill: '#f97316', r: 3 }} name="Orders" />
-        </LineChart>
+    <div className="rounded-2xl p-5 animate-scaleIn delay-150"
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h3 className="font-black text-white text-sm">Order Trends</h3>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Weekly performance</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ background: '#34d399', boxShadow: '0 0 8px rgba(52,211,153,0.5)' }} />
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Orders</span>
+          </div>
+          <span className="text-xs font-bold px-3 py-1.5 rounded-full"
+            style={{ background: 'rgba(52,211,153,0.12)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }}>
+            Weekly
+          </span>
+        </div>
+      </div>
+
+      <ResponsiveContainer width="100%" height={220}>
+        <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+          <defs>
+            <linearGradient id="areaGradDark" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#34d399" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#34d399" stopOpacity={0}   />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <XAxis dataKey="week" tick={{ fontSize: 11, fontWeight: 600, fill: 'rgba(255,255,255,0.35)' }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.35)' }} axisLine={false} tickLine={false} />
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="orders"
+            stroke="#34d399"
+            strokeWidth={2.5}
+            fill="url(#areaGradDark)"
+            dot={{ fill: '#34d399', strokeWidth: 0, r: 4 }}
+            activeDot={{ r: 7, fill: '#34d399', strokeWidth: 3, stroke: 'rgba(52,211,153,0.3)' }}
+          />
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
