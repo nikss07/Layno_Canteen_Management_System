@@ -1,147 +1,227 @@
-import React, { useState, useEffect } from 'react';
+// ============================================================
+// FILE: src/components/menu/MenuForm.jsx
+// PURPOSE: Dark immersive Add/Edit menu item modal
+// ============================================================
+
+import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
-export default function MenuForm({ item, categories, onSave, onClose }) {
-  const [form, setForm] = useState({
-    name: '', description: '', price: '', category_id: '',
-    is_available: true, stock_quantity: '', image: null,
-  });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+
+const fieldStyles = {
+  background: 'var(--surface-3)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  color: 'var(--text-primary)',
+  borderRadius: '0.75rem',
+  padding: '0.65rem 1rem',
+  fontSize: '0.875rem',
+  outline: 'none',
+  width: '100%',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+};
+
+export default function MenuForm({ item, onSuccess, onClose }) {
+  const isEdit = !!item;
+  const [form, setForm]       = useState({ name: '', description: '', price: '', stock: '', category_id: '', is_available: true, image: null });
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
+    // Fetch categories for the dropdown
+    api.get('/categories').then(res => setCategories(res.data.data || res.data)).catch(console.error);
+
     if (item) {
-      setForm({
-        name: item.name || '',
-        description: item.description || '',
-        price: item.price || '',
-        category_id: item.category_id || '',
-        is_available: item.is_available ?? true,
-        stock_quantity: item.stock_quantity || '',
-        image: null,
-      });
+      setForm({ name: item.name, description: item.description || '', price: item.price, stock: item.stock || 0, category_id: item.category_id || (item.category?.id) || '', is_available: item.is_available, image: null });
+      setPreview(item.image || null);
     }
   }, [item]);
 
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = 'Name is required';
-    if (!form.price || isNaN(form.price) || form.price <= 0) e.price = 'Valid price is required';
-    if (!form.category_id) e.category_id = 'Category is required';
-    if (!form.stock_quantity || isNaN(form.stock_quantity)) e.stock_quantity = 'Stock quantity is required';
-    return e;
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setForm({ ...form, image: file });
-      setPreview(URL.createObjectURL(file));
+  const handleChange = (e) => {
+    const { name, value, type, checked, files } = e.target;
+    if (type === 'file') {
+      const f = files[0];
+      setForm((p) => ({ ...p, image: f }));
+      setPreview(URL.createObjectURL(f));
+    } else {
+      setForm((p) => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
     }
   };
+
+  const handleFocus  = (e) => { e.target.style.borderColor = '#f97316'; e.target.style.boxShadow = '0 0 0 3px rgba(249,115,22,0.15)'; };
+  const handleBlur   = (e) => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.boxShadow = 'none'; };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-
-    setLoading(true);
+    e.preventDefault(); setLoading(true); setError('');
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => {
-        if (val !== null) formData.append(key, val);
+      const data = new FormData();
+      Object.entries(form).forEach(([k, v]) => { 
+        if (v !== null) {
+          if (typeof v === 'boolean') {
+            data.append(k, v ? 1 : 0);
+          } else {
+            data.append(k, v); 
+          }
+        }
       });
-      formData.append('is_available', form.is_available ? 1 : 0);
-
-      if (item) {
-        formData.append('_method', 'PUT');
-        await api.post(`/menu/${item.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (isEdit) {
+        data.append('_method', 'PUT');
+        await api.post(`/menu-items/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
       } else {
-        await api.post('/menu', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await api.post('/menu-items', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
-      onSave();
+      onSuccess();
     } catch (err) {
-      if (err.response?.data?.errors) setErrors(err.response.data.errors);
-    } finally {
-      setLoading(false);
-    }
+      setError(err.response?.data?.message || 'Failed to save. Please try again.');
+    } finally { setLoading(false); }
   };
 
-  const inputClass = (field) =>
-    `w-full px-3 py-2.5 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-orange-300 ${
-      errors[field] ? 'border-red-400 bg-red-50' : 'border-gray-200'
-    }`;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-800">{item ? 'Edit Menu Item' : 'Add Menu Item'}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition">✕</button>
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-50 animate-fadeIn"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}>
+      <div className="w-full max-w-lg rounded-3xl overflow-hidden animate-slideUp"
+        style={{ background: '#15181f', border: '1px solid rgba(255,255,255,0.09)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
+
+        {/* Header */}
+        <div className="px-6 py-4 flex items-center justify-between"
+          style={{ background: 'linear-gradient(135deg, #f97316, #fb923c)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <h2 className="text-white font-black text-base tracking-tight">
+            {isEdit ? '✏️ Edit Item' : '➕ New Menu Item'}
+          </h2>
+          <button onClick={onClose} className="text-white/70 hover:text-white text-xl transition-colors w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/20">
+            ✕
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Image Upload */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+
+          {error && (
+            <div className="px-4 py-3 rounded-xl text-sm animate-shake"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* Image upload */}
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-orange-50 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-dashed border-orange-200">
-              {preview || item?.image ? (
-                <img src={preview || `${process.env.REACT_APP_API_URL?.replace('/api', '')}/storage/${item.image}`} alt="" className="w-full h-full object-cover" />
-              ) : <span className="text-3xl">🍽️</span>}
+            <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(249,115,22,0.08)', border: '2px dashed rgba(249,115,22,0.3)' }}>
+              {preview
+                ? <img src={preview} alt="" className="w-full h-full object-cover" />
+                : <span className="text-3xl">🍽️</span>
+              }
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Photo</label>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
+              <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all"
+                style={{ background: 'rgba(249,115,22,0.1)', color: '#f97316', border: '1px solid rgba(249,115,22,0.25)' }}>
+                📷 Upload Photo
+                <input type="file" accept="image/*" onChange={handleChange} className="hidden" />
+              </label>
+              <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>JPG, PNG · Max 2MB</p>
             </div>
           </div>
 
+          {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass('name')} placeholder="e.g. Chicken Adobo" />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Item Name *
+            </label>
+            <input
+              name="name" value={form.name} onChange={handleChange} required
+              placeholder="e.g. Chicken Adobo"
+              style={fieldStyles}
+              onFocus={handleFocus} onBlur={handleBlur}
+            />
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass('description')} rows={2} placeholder="Brief description..." />
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Description
+            </label>
+            <textarea
+              name="description" value={form.description} onChange={handleChange}
+              rows={2} placeholder="Short description..."
+              style={{ ...fieldStyles, resize: 'none' }}
+              onFocus={handleFocus} onBlur={handleBlur}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            {/* Price */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price (₱) *</label>
-              <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={inputClass('price')} placeholder="0.00" />
-              {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Price (₱) *
+              </label>
+              <input
+                name="price" type="number" step="0.01" min="0" value={form.price}
+                onChange={handleChange} required placeholder="0.00"
+                style={fieldStyles}
+                onFocus={handleFocus} onBlur={handleBlur}
+              />
             </div>
+
+            {/* Stock */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
-              <input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })} className={inputClass('stock_quantity')} placeholder="0" />
-              {errors.stock_quantity && <p className="text-red-500 text-xs mt-1">{errors.stock_quantity}</p>}
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Stock *
+              </label>
+              <input
+                name="stock" type="number" min="0" value={form.stock}
+                onChange={handleChange} required placeholder="0"
+                style={fieldStyles}
+                onFocus={handleFocus} onBlur={handleBlur}
+              />
             </div>
           </div>
 
+          {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-            <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} className={inputClass('category_id')}>
-              <option value="">Select category...</option>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+              Category *
+            </label>
+            <select
+              name="category_id" value={form.category_id} onChange={handleChange}
+              style={{ ...fieldStyles, cursor: 'pointer' }}
+              onFocus={handleFocus} onBlur={handleBlur}
+              required
+            >
+              <option value="" disabled style={{ background: '#1e2330' }}>Select Category</option>
+              {categories.map((c) => <option key={c.id} value={c.id} style={{ background: '#1e2330' }}>{c.name}</option>)}
             </select>
-            {errors.category_id && <p className="text-red-500 text-xs mt-1">{errors.category_id}</p>}
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div
-              onClick={() => setForm({ ...form, is_available: !form.is_available })}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.is_available ? 'bg-green-500' : 'bg-gray-300'}`}
-            >
-              <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_available ? 'translate-x-5' : ''}`} />
+          {/* Availability toggle */}
+          <div className="flex items-center justify-between px-4 py-3.5 rounded-xl"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div>
+              <p className="text-sm font-bold text-white">Available for Order</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Customers can see and order this item</p>
             </div>
-            <span className="text-sm text-gray-700">Available for ordering</span>
-          </label>
+            <button type="button" onClick={() => setForm((p) => ({ ...p, is_available: !p.is_available }))}
+              className="relative w-12 h-6 rounded-full transition-all duration-200"
+              style={{
+                background: form.is_available ? 'linear-gradient(135deg, #f97316, #fb923c)' : 'rgba(255,255,255,0.1)',
+                boxShadow: form.is_available ? '0 0 12px rgba(249,115,22,0.4)' : 'none',
+              }}>
+              <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200"
+                style={{ transform: form.is_available ? 'translateX(24px)' : 'translateX(0)' }} />
+            </button>
+          </div>
 
+          {/* Buttons */}
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold transition">
-              {loading ? 'Saving...' : item ? 'Save Changes' : 'Add Item'}
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
+              style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={loading}
+              className="flex-1 py-2.5 text-white rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all"
+              style={{ background: 'linear-gradient(135deg, #f97316, #fb923c)', boxShadow: '0 4px 16px rgba(249,115,22,0.35)', opacity: loading ? 0.6 : 1 }}>
+              {loading ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
+              ) : isEdit ? 'Update Item' : 'Add Item'}
             </button>
           </div>
         </form>

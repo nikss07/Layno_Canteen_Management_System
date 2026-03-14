@@ -1,7 +1,3 @@
-// ============================================================
-// FILE: src/components/common/ErrorBoundary.jsx
-// PURPOSE: Catches React render errors — shows fallback UI
-// ============================================================
 
 import { Component } from 'react';
 

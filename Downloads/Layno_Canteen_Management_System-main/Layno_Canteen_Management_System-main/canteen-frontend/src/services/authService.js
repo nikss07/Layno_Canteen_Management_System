@@ -1,32 +1,27 @@
+// ============================================================
+// FILE: src/services/authService.js
+// PURPOSE: Login, logout, token & user storage helpers
+// ============================================================
+
 import api from './api';
 
-const authService = {
+export const authService = {
   login: async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    if (res.data.token) {
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-    }
-    return res.data;
+    const res = await api.post('/login', { email, password });
+    const { token, user } = res.data;
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('auth_user', JSON.stringify(user));
+    return { token, user };
   },
 
   logout: async () => {
-    try { await api.post('/auth/logout'); } catch (_) {}
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    try { await api.post('/logout'); } finally {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+    }
   },
 
-  register: async (data) => {
-    const res = await api.post('/auth/register', data);
-    return res.data;
-  },
-
-  me: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-
-  isAuthenticated: () => !!localStorage.getItem('token'),
+  getUser:          () => { const u = localStorage.getItem('auth_user'); return u ? JSON.parse(u) : null; },
+  getToken:         () => localStorage.getItem('auth_token'),
+  isAuthenticated:  () => !!localStorage.getItem('auth_token'),
 };
-
-export default authService;

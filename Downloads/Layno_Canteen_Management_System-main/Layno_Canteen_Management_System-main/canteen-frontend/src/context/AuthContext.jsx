@@ -1,22 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
+// ============================================================
+// FILE: src/context/AuthContext.jsx
+// PURPOSE: Global auth state — user, login, logout, loading
+// ============================================================
+
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = authService.me();
-    if (stored) setUser(stored);
+    const stored = authService.getUser();
+    if (stored && authService.isAuthenticated()) setUser(stored);
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    const data = await authService.login(email, password);
-    setUser(data.user);
-    return data.user;
+    const { user } = await authService.login(email, password);
+    setUser(user);
+    return user;
   };
 
   const logout = async () => {
@@ -29,8 +34,10 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be inside AuthProvider');
+  return ctx;
+};

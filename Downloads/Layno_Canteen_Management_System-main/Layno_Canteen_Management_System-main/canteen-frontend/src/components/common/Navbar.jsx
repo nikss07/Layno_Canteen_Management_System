@@ -57,7 +57,7 @@ export default function Navbar({ onMenuToggle, onCartOpen }) {
         boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.4)' : 'none',
       }}
     >
-      {/* Hamburger — mobile */}
+      
       <button
         id="nav-menu-toggle"
         onClick={onMenuToggle}
@@ -66,7 +66,7 @@ export default function Navbar({ onMenuToggle, onCartOpen }) {
         ☰
       </button>
 
-      {/* Page title */}
+      
       <div className="hidden sm:flex items-center gap-2">
         {page.icon && (
           <span className="text-lg">{page.icon}</span>
@@ -76,10 +76,10 @@ export default function Navbar({ onMenuToggle, onCartOpen }) {
 
       <div className="flex-1" />
 
-      {/* Right cluster */}
+      
       <div className="flex items-center gap-2">
 
-        {/* Cart */}
+        
         {(user?.role === 'customer' || user?.role === 'cashier') && (
           <button
             onClick={onCartOpen}
@@ -95,10 +95,10 @@ export default function Navbar({ onMenuToggle, onCartOpen }) {
           </button>
         )}
 
-        {/* Divider */}
+        
         <div className="w-px h-6 mx-1" style={{ background: 'rgba(255,255,255,0.09)' }} />
 
-        {/* User dropdown */}
+       
         <div className="relative">
           <button
             id="nav-user-menu"

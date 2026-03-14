@@ -1,129 +1,135 @@
-import React, { useState, useEffect } from 'react';
+// ============================================================
+// FILE: src/components/inventory/InventoryTable.jsx
+// PURPOSE: Stock table with restock inline input
+// ============================================================
+
+import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import LowStockAlert from './LowStockAlert';
 
-const LOW_THRESHOLD = 10;
+const stockInfo = (qty) => {
+  if (qty <=  5) return { label:'Critical', badge:'bg-red-100 text-red-700',       bar:'bg-red-500',    pct: Math.min((qty/50)*100, 100) };
+  if (qty <= 10) return { label:'Low',      badge:'bg-yellow-100 text-yellow-700', bar:'bg-yellow-500', pct: Math.min((qty/50)*100, 100) };
+  if (qty <= 30) return { label:'Medium',   badge:'bg-blue-100 text-blue-700',     bar:'bg-blue-500',   pct: Math.min((qty/50)*100, 100) };
+  return              { label:'Good',      badge:'bg-green-100 text-green-700',   bar:'bg-green-500',  pct: Math.min((qty/50)*100, 100) };
+};
 
 export default function InventoryTable() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [adjusting, setAdjusting] = useState(null);
-  const [adjustForm, setAdjustForm] = useState({ amount: '', reason: '' });
-  const [search, setSearch] = useState('');
+  const [items, setItems]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [restockId, setRestockId] = useState(null);
+  const [qty, setQty]             = useState('');
 
   const fetchItems = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/inventory');
       setItems(res.data.data || res.data);
-    } catch (err) { console.error(err); }
+    } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchItems(); }, []);
 
-  const handleAdjust = async () => {
-    if (!adjustForm.amount || !adjustForm.reason) { alert('Fill in amount and reason.'); return; }
+  const handleRestock = async (id) => {
+    if (!qty || isNaN(qty) || +qty <= 0) return alert('Enter a valid quantity.');
     try {
-      await api.post(`/inventory/${adjusting}/adjust`, {
-        change_amount: parseInt(adjustForm.amount),
-        reason: adjustForm.reason,
-      });
-      setAdjusting(null);
-      setAdjustForm({ amount: '', reason: '' });
+      await api.post(`/inventory/${id}/restock`, { quantity: parseInt(qty) });
+      setRestockId(null); setQty('');
       fetchItems();
-    } catch (err) { alert(err.response?.data?.message || 'Failed to adjust stock.'); }
+    } catch (e) { alert(e.response?.data?.message || 'Restock failed.'); }
   };
 
-  const lowStock = items.filter((i) => i.stock_quantity <= LOW_THRESHOLD && i.stock_quantity > 0);
-  const outOfStock = items.filter((i) => i.stock_quantity === 0);
-
-  const filtered = items.filter((i) =>
-    i.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  if (loading) return <LoadingSpinner />;
+  const lowStock = items.filter((i) => i.stock_quantity <= 10);
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div className="p-4 lg:p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 animate-fadeInUp">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Inventory</h1>
-          <p className="text-gray-500 text-sm">{items.length} items tracked</p>
+          <h1 className="text-2xl font-extrabold text-gray-800">📦 Inventory</h1>
+          <p className="text-gray-400 text-sm mt-0.5">{items.length} items tracked</p>
         </div>
-        <div className="flex gap-2">
-          {outOfStock.length > 0 && (
-            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-xl border border-red-200">
-              🚫 {outOfStock.length} Out of Stock
-            </span>
-          )}
-          {lowStock.length > 0 && (
-            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1.5 rounded-xl border border-yellow-200">
-              ⚠️ {lowStock.length} Low Stock
-            </span>
-          )}
-        </div>
+        <button onClick={fetchItems}
+          className="px-4 py-2 bg-orange-50 text-orange-600 rounded-xl text-sm font-semibold hover:bg-orange-100 transition-colors border border-orange-200">
+          🔄 Refresh
+        </button>
       </div>
 
-      <LowStockAlert items={[...outOfStock, ...lowStock]} threshold={LOW_THRESHOLD} />
+      <LowStockAlert items={lowStock} />
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search inventory..."
-          className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-        />
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      {loading ? <LoadingSpinner text="Loading inventory..." /> : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Item</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                {['Item','Category','Stock','Level','Status','Action'].map((h) => (
+                  <th key={h} className="text-left px-5 py-3.5 text-xs font-extrabold text-gray-400 uppercase tracking-widest">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((item) => {
-                const isOut = item.stock_quantity === 0;
-                const isLow = item.stock_quantity > 0 && item.stock_quantity <= LOW_THRESHOLD;
+              {items.map((item, i) => {
+                const info = stockInfo(item.stock_quantity);
                 return (
-                  <tr key={item.id} className={`hover:bg-gray-50 transition ${isOut ? 'bg-red-50' : isLow ? 'bg-yellow-50' : ''}`}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800 text-sm">{item.name}</p>
+                  <tr key={item.id}
+                    className="hover:bg-orange-50/30 transition-colors animate-fadeInUp"
+                    style={{ animationDelay: `${i * 25}ms` }}>
+
+                    {/* Item name */}
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border border-orange-100">
+                          {item.image
+                            ? <img src={item.image} alt="" className="w-full h-full object-cover" />
+                            : <span className="text-lg">🍽️</span>
+                          }
+                        </div>
+                        <p className="font-bold text-gray-800 text-sm">{item.name}</p>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{item.category?.name || '—'}</td>
-                    <td className="px-4 py-3 text-sm font-semibold text-orange-500">₱{parseFloat(item.price).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`font-bold text-sm ${isOut ? 'text-red-500' : isLow ? 'text-yellow-600' : 'text-gray-800'}`}>
-                        {item.stock_quantity}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {isOut ? (
-                        <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-1 rounded-full">Out of Stock</span>
-                      ) : isLow ? (
-                        <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">Low Stock</span>
+
+                    <td className="px-5 py-3.5 text-sm text-gray-400 font-medium">{typeof item.category === 'object' ? item.category?.name : item.category}</td>
+
+                    {/* Stock / restock input */}
+                    <td className="px-5 py-3.5">
+                      {restockId === item.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <input type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)}
+                            placeholder="Qty" className="w-16 px-2 py-1.5 border border-orange-300 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                          <button onClick={() => handleRestock(item.id)}
+                            className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 transition-colors font-bold">✓</button>
+                          <button onClick={() => { setRestockId(null); setQty(''); }}
+                            className="px-2 py-1.5 bg-gray-100 text-gray-400 text-xs rounded-lg hover:bg-gray-200 transition-colors font-bold">✕</button>
+                        </div>
                       ) : (
-                        <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">In Stock</span>
+                        <span className="font-extrabold text-gray-800">{item.stock_quantity}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => setAdjusting(item.id)}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium transition"
-                      >
-                        Adjust
+
+                    {/* Progress bar */}
+                    <td className="px-5 py-3.5">
+                      <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${info.bar} rounded-full transition-all duration-700`}
+                          style={{ width: `${info.pct}%` }} />
+                      </div>
+                    </td>
+
+                    {/* Status badge */}
+                    <td className="px-5 py-3.5">
+                      <span className={`text-xs font-bold px-2.5 py-1.5 rounded-full ${info.badge}`}>
+                        {info.label}
+                      </span>
+                    </td>
+
+                    {/* Restock button */}
+                    <td className="px-5 py-3.5">
+                      <button onClick={() => { setRestockId(item.id); setQty(''); }}
+                        className="px-3 py-1.5 bg-orange-50 text-orange-600 text-xs font-bold rounded-xl hover:bg-orange-100 transition-colors border border-orange-200 whitespace-nowrap">
+                        + Restock
                       </button>
                     </td>
                   </tr>
@@ -131,41 +137,6 @@ export default function InventoryTable() {
               })}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Adjust Modal */}
-      {adjusting && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6">
-            <h3 className="font-bold text-gray-800 mb-4">Adjust Stock</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (use negative to reduce)</label>
-                <input
-                  type="number"
-                  value={adjustForm.amount}
-                  onChange={(e) => setAdjustForm({ ...adjustForm, amount: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                  placeholder="e.g. 20 or -5"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-                <input
-                  type="text"
-                  value={adjustForm.reason}
-                  onChange={(e) => setAdjustForm({ ...adjustForm, reason: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                  placeholder="e.g. Restocked from supplier"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-5">
-              <button onClick={() => setAdjusting(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">Cancel</button>
-              <button onClick={handleAdjust} className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition">Save</button>
-            </div>
-          </div>
         </div>
       )}
     </div>

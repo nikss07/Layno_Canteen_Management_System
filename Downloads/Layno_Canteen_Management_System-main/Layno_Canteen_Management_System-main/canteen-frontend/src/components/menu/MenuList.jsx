@@ -1,146 +1,133 @@
-import React, { useState, useEffect } from 'react';
+// ============================================================
+// FILE: src/components/menu/MenuList.jsx
+// PURPOSE: Immersive dark full menu page
+// ============================================================
+
+import { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { useCart } from '../../context/CartContext';
 import MenuItemCard from './MenuItemCard';
 import MenuForm from './MenuForm';
 import LoadingSpinner from '../common/LoadingSpinner';
 
+const CATS = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Beverages', 'Desserts'];
+
 export default function MenuList() {
-  const { user } = useAuth();
-  const { addItem } = useCart();
-  const [items, setItems] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [items, setItems]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState('');
+  const [category, setCategory] = useState('All');
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [toast, setToast] = useState('');
+  const { user } = useAuth();
 
-  const fetchData = async () => {
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
     try {
-      const [menuRes, catRes] = await Promise.all([api.get('/menu'), api.get('/categories')]);
-      setItems(menuRes.data.data || menuRes.data);
-      setCategories(catRes.data.data || catRes.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const res = await api.get('/menu-items');
+      setItems(res.data.data || res.data);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, []);
 
-  useEffect(() => { fetchData(); }, []);
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
+  useEffect(() => { fetchItems(); }, [fetchItems]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this item?')) return;
-    await api.delete(`/menu/${id}`);
-    fetchData();
-    showToast('Item deleted.');
+    if (window.confirm('Delete this menu item?')) return;
+    try { await api.delete(`/menu-items/${id}`); fetchItems(); }
+    catch (e) { alert('Delete failed.'); }
   };
 
-  const handleAddToCart = (item) => {
-    addItem(item);
-    showToast(`${item.name} added to cart!`);
-  };
-
-  const filtered = items.filter((item) => {
-    const matchSearch = item.name.toLowerCase().includes(search.toLowerCase());
-    const matchCat = activeCategory === 'all' || item.category_id === activeCategory;
-    return matchSearch && matchCat;
+  const filtered = items.filter((i) => {
+    const itemName = i.name || '';
+    const itemCat = i.category?.name || i.category || 'Other';
+    return itemName.toLowerCase().includes(search.toLowerCase()) &&
+           (category === 'All' || itemCat === category);
   });
 
-  const isAdmin = user?.role === 'admin';
-  const isCashier = user?.role === 'cashier';
-
-  if (loading) return <LoadingSpinner />;
-
   return (
-    <div>
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-gray-800 text-white text-sm px-4 py-3 rounded-2xl shadow-xl animate-bounce">
-          {toast}
-        </div>
-      )}
+    <div className="p-4 lg:p-6">
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 animate-fadeInUp">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Menu</h1>
-          <p className="text-gray-500 text-sm">{filtered.length} items available</p>
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            {user?.role === 'admin'
+              ? <><span className="gradient-text">Menu</span> Management</>
+              : <>Our <span className="gradient-text">Menu</span></>
+            }
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+            {filtered.length} item{filtered.length !== 1 ? 's' : ''} available
+          </p>
         </div>
-        {isAdmin && (
+        {user?.role === 'admin' && (
           <button
             onClick={() => { setEditItem(null); setShowForm(true); }}
-            className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-sm"
+            className="btn-accent flex items-center gap-2 text-sm"
           >
-            + Add Item
+            ➕ Add Item
           </button>
         )}
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search menu items..."
-          className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white"
-        />
+      {/* ── Search + Filter ── */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6 animate-fadeInUp" style={{ animationDelay: '60ms' }}>
+        <div className="relative flex-1">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-40">🔍</span>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search items..."
+            className="input-dark pl-10"
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {CATS.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className="px-3 py-2 rounded-xl text-xs font-bold transition-all duration-150"
+              style={category === cat
+                ? { background: 'linear-gradient(135deg, #f97316, #fb923c)', color: '#fff', boxShadow: '0 4px 14px rgba(249,115,22,0.35)' }
+                : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }
+              }
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Category Filters */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        <button
-          onClick={() => setActiveCategory('all')}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition ${activeCategory === 'all' ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-orange-300'}`}
-        >
-          All
-        </button>
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${activeCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-orange-300'}`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <div className="text-5xl mb-3">🍽️</div>
-          <p className="font-medium">No items found</p>
-          <p className="text-sm">Try a different search or category</p>
+      {/* ── Grid ── */}
+      {loading ? (
+        <LoadingSpinner text="Loading menu..." />
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-24 animate-fadeIn">
+          <div className="text-7xl mb-4">🍽️</div>
+          <p className="font-bold text-white/50 text-lg">No items found</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Try a different search or category</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.map((item, i) => (
             <MenuItemCard
               key={item.id}
               item={item}
-              showActions={isAdmin}
-              onEdit={(i) => { setEditItem(i); setShowForm(true); }}
+              delay={i * 40}
+              onEdit={(item) => { setEditItem(item); setShowForm(true); }}
               onDelete={handleDelete}
-              onAddToCart={isCashier || user?.role === 'customer' ? handleAddToCart : null}
             />
           ))}
         </div>
       )}
 
+      {/* ── Form modal ── */}
       {showForm && (
         <MenuForm
           item={editItem}
-          categories={categories}
-          onSave={() => { setShowForm(false); fetchData(); showToast('Menu item saved!'); }}
           onClose={() => setShowForm(false)}
+          onSuccess={() => { setShowForm(false); fetchItems(); }}
         />
       )}
     </div>

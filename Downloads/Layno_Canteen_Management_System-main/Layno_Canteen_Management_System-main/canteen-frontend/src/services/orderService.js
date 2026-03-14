@@ -1,10 +1,16 @@
+// ============================================================
+// FILE: src/services/orderService.js
+// PURPOSE: All order & report related API calls
+// ============================================================
+
 import api from './api';
 
-const orderService = {
-  getAll: (params) => api.get('/orders', { params }),
-  getOne: (id) => api.get(`/orders/${id}`),
-  create: (data) => api.post('/orders', data),
-  updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
+export const orderService = {
+  createOrder:       (data)         => api.post('/orders', data),
+  getOrders:         (params)       => api.get('/orders', { params }),
+  getOrder:          (id)           => api.get(`/orders/${id}`),
+  updateOrderStatus: (id, status)   => api.patch(`/orders/${id}/status`, { status }),
+  cancelOrder:       (id)           => api.post(`/orders/${id}/cancel`),
+  getSalesReport:    (params)       => api.get('/reports/sales', { params }),
+  getBestSellers:    ()             => api.get('/reports/best-sellers'),
 };
-
-export default orderService;

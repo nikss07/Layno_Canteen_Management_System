@@ -1,34 +1,26 @@
-import React, { useState } from 'react';
+// ============================================================
+// FILE: src/components/inventory/LowStockAlert.jsx
+// PURPOSE: Warning banner listing low-stock items
+// ============================================================
 
-export default function LowStockAlert({ items, threshold }) {
-  const [dismissed, setDismissed] = useState(false);
-
-  if (!items || items.length === 0 || dismissed) return null;
-
+export default function LowStockAlert({ items }) {
+  if (!items.length) return null;
   return (
-    <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <span className="text-xl">⚠️</span>
-          <div>
-            <p className="font-semibold text-yellow-800 text-sm">Low Stock Alert</p>
-            <p className="text-yellow-700 text-xs mt-1">
-              {items.length} item{items.length !== 1 ? 's' : ''} need{items.length === 1 ? 's' : ''} attention:
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {items.map((item) => (
-                <span key={item.id} className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  item.stock_quantity === 0
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {item.name} ({item.stock_quantity === 0 ? 'OUT' : item.stock_quantity + ' left'})
-                </span>
-              ))}
-            </div>
+    <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl animate-fadeIn">
+      <div className="flex items-start gap-3">
+        <span className="text-2xl flex-shrink-0 animate-bounce">⚠️</span>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-extrabold text-amber-800 text-sm">Low Stock Warning — {items.length} item(s)</h3>
+          <p className="text-amber-500 text-xs mt-0.5 mb-2">Please restock these items soon</p>
+          <div className="flex flex-wrap gap-2">
+            {items.map((item) => (
+              <span key={item.id}
+                className={`text-xs px-2.5 py-1 rounded-full font-bold ${item.stock_quantity <= 5 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                {item.name}: {item.stock_quantity} left
+              </span>
+            ))}
           </div>
         </div>
-        <button onClick={() => setDismissed(true)} className="text-yellow-500 hover:text-yellow-700 transition text-lg leading-none">✕</button>
       </div>
     </div>
   );

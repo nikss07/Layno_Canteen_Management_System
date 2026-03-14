@@ -1,7 +1,3 @@
-// ============================================================
-// FILE: src/components/common/CartDrawer.jsx
-// PURPOSE: Sliding immersive cart drawer for both customers & cashiers
-// ============================================================
 
 import { useState } from 'react';
 import { useCart } from '../../context/CartContext';
@@ -39,16 +35,16 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end overflow-hidden">
-      {/* Backdrop */}
+      
       <div className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose} />
 
-      {/* Drawer */}
+      
       <div className={`relative w-full max-w-md h-full shadow-2xl transition-transform duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         style={{ background: '#111318', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
         
         <div className="flex flex-col h-full mesh-bg">
-          {/* Header */}
+          
           <div className="p-6 flex items-center justify-between border-b border-white/5">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🛒</span>
@@ -62,7 +58,7 @@ export default function CartDrawer({ isOpen, onClose }) {
             </button>
           </div>
 
-          {/* Body */}
+          
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {success ? (
               <div className="h-full flex flex-col items-center justify-center text-center animate-fadeIn">
@@ -112,11 +108,11 @@ export default function CartDrawer({ isOpen, onClose }) {
             )}
           </div>
 
-          {/* Footer */}
+          
           {!success && items.length > 0 && (
             <div className="p-6 border-t border-white/5 space-y-6" style={{ background: 'rgba(255,255,255,0.01)' }}>
               
-              {/* Payment Method */}
+              
               <div className="space-y-3">
                 <span className="text-[10px] font-black tracking-widest text-white/30 uppercase">Select Payment Method</span>
                 <div className="grid grid-cols-2 gap-3">

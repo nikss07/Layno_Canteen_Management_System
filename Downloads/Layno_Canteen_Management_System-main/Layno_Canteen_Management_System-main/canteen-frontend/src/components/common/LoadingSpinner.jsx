@@ -1,8 +1,3 @@
-// ============================================================
-// FILE: src/components/common/LoadingSpinner.jsx
-// PURPOSE: Immersive dark spinner — inline or full-screen
-// ============================================================
-
 export default function LoadingSpinner({ fullScreen = false, size = 'md', text = '' }) {
   const sizes = {
     sm: 'w-5  h-5  border-2',
@@ -12,7 +7,7 @@ export default function LoadingSpinner({ fullScreen = false, size = 'md', text =
 
   const spinner = (
     <div className="flex flex-col items-center gap-4">
-      {/* Outer ring */}
+     
       <div className="relative">
         <div
           className={`${sizes[size]} rounded-full animate-spin`}
@@ -22,7 +17,7 @@ export default function LoadingSpinner({ fullScreen = false, size = 'md', text =
             boxShadow: '0 0 20px rgba(249,115,22,0.3)',
           }}
         />
-        {/* Inner pulse dot */}
+        
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"
             style={{ boxShadow: '0 0 8px rgba(249,115,22,0.8)' }} />
