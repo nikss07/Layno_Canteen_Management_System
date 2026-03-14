@@ -206,7 +206,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center text-xs mt-6 animate-fadeInUp delay-500" style={{ color: 'var(--text-muted)' }}>
-          © 2024 Canteen Management System · Built with ❤️
+          © 2026 Canteen Management System · Built with ❤️
         </p>
       </div>
     </div>
