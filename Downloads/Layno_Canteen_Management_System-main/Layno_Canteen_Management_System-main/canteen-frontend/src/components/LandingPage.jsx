@@ -466,7 +466,7 @@ export default function LandingPage() {
               From hearty rice meals to refreshing beverages and sweet desserts, everything we serve is made with love and the freshest ingredients. Our mission is simple — to make every meal feel like home.
             </p>
             <div style={{ display:'flex', gap:24, flexWrap:'wrap' }}>
-              {[['500+','Happy Customers'], ['50+','Menu Items'], ['3','Years of Service']].map(([num, label]) => (
+              {[['500+','Happy Customers'], ['30+','Menu Items'], ['3','Years of Service']].map(([num, label]) => (
                 <div key={label} style={{ textAlign:'center' }}>
                   <p style={{ fontSize:32, fontWeight:900, color:'#f97316', margin:0 }}>{num}</p>
                   <p style={{ fontSize:13, color:'#6b6b6b', margin:0, fontWeight:600 }}>{label}</p>
