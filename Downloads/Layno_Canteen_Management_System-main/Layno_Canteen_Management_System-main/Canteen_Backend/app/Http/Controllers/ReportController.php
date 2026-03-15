@@ -62,23 +62,22 @@ class ReportController extends Controller
     ]);
 }
     public function sales(Request $request)
-    {
-        $period = $request->period ?? 'daily';
+{
+    $period = $request->period ?? 'daily';
+    $format = match($period) {
+        'weekly'  => 'IYYY-IW',
+        'monthly' => 'YYYY-MM',
+        default   => 'YYYY-MM-DD',
+    };
 
-        $format = match($period) {
-            'weekly' => '%Y-%u',
-            'monthly' => '%Y-%m',
-            default => '%Y-%m-%d',
-        };
+    $sales = Order::whereNotIn('status', ['cancelled'])
+        ->selectRaw("TO_CHAR(created_at, '{$format}') as period, SUM(total_amount) as revenue, COUNT(*) as orders")
+        ->groupBy('period')
+        ->orderBy('period')
+        ->get();
 
-        $sales = Order::where('status', 'completed')
-            ->selectRaw("DATE_FORMAT(created_at, '{$format}') as period, SUM(total_amount) as revenue, COUNT(*) as orders")
-            ->groupBy('period')
-            ->orderBy('period')
-            ->get();
-
-        return response()->json($sales);
-    }
+    return response()->json($sales);
+}
 
     public function topItems()
     {
@@ -92,14 +91,14 @@ class ReportController extends Controller
         return response()->json($items);
     }
 
-    public function categoryBreakdown()
-    {
-        $data = OrderItem::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.id')
-            ->join('categories', 'menu_items.category_id', '=', 'categories.id')
-            ->selectRaw('categories.name as category, SUM(order_items.quantity * order_items.price) as revenue')
-            ->groupBy('categories.name')
-            ->get();
+   public function categoryBreakdown()
+{
+    $data = OrderItem::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.id')
+        ->join('categories', 'menu_items.category_id', '=', 'categories.id')
+        ->selectRaw('categories.name as category, SUM(order_items.quantity * order_items.price) as revenue')
+        ->groupBy('categories.name')
+        ->get();
 
-        return response()->json($data);
-    }
+    return response()->json($data);
+}
 }
