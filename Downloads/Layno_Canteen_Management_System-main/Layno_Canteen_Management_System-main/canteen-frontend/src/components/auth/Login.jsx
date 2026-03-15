@@ -6,19 +6,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { ShieldCheck, Monitor, UtensilsCrossed } from 'lucide-react';
 
 const DEMO = [
-  { role: 'Admin',    email: 'admin@canteen.com',    icon: '⚡', grad: 'from-violet-500 to-purple-600',  glow: 'rgba(139,92,246,0.4)' },
-  { role: 'Cashier',  email: 'cashier@canteen.com',  icon: '🖥️', grad: 'from-sky-500 to-blue-600',     glow: 'rgba(14,165,233,0.4)' },
-  { role: 'Customer', email: 'customer@canteen.com', icon: '🍽️', grad: 'from-emerald-500 to-green-600', glow: 'rgba(16,185,129,0.4)' },
+  { role: 'Admin',    email: 'karyll@admin.com',    icon: <ShieldCheck size={28} color="#a78bfa" />, grad: 'from-violet-500 to-purple-600',  glow: 'rgba(139,92,246,0.4)' },
+  { role: 'Cashier',  email: 'junaica@cashier.com',  icon: <Monitor size={28} color="#38bdf8" />,    grad: 'from-sky-500 to-blue-600',        glow: 'rgba(14,165,233,0.4)' },
+  { role: 'Customer', email: 'mel@customer.com',     icon: <UtensilsCrossed size={28} color="#34d399" />, grad: 'from-emerald-500 to-green-600', glow: 'rgba(16,185,129,0.4)' },
 ];
 
 export default function Login() {
-  const [email, setEmail]         = useState('');
-  const [password, setPassword]   = useState('');
-  const [showPass, setShowPass]   = useState(false);
-  const [error, setError]         = useState('');
-  const [loading, setLoading]     = useState(false);
+  const [email, setEmail]           = useState('');
+  const [password, setPassword]     = useState('');
+  const [showPass, setShowPass]     = useState(false);
+  const [error, setError]           = useState('');
+  const [loading, setLoading]       = useState(false);
   const [activeDemo, setActiveDemo] = useState(null);
   const { login }  = useAuth();
   const navigate   = useNavigate();
@@ -28,9 +29,9 @@ export default function Login() {
     setError(''); setLoading(true);
     try {
       const user = await login(email, password);
-      if      (user.role === 'admin')    navigate('/admin/dashboard');
-      else if (user.role === 'cashier')  navigate('/cashier/pos');
-      else                               navigate('/menu');
+      if      (user.role === 'admin')   navigate('/admin/dashboard');
+      else if (user.role === 'cashier') navigate('/cashier/pos');
+      else                              navigate('/menu');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
@@ -40,7 +41,7 @@ export default function Login() {
 
   const pickDemo = (d) => {
     setEmail(d.email);
-    setPassword('password');
+    setPassword('css@1234');
     setActiveDemo(d.role);
   };
 
@@ -60,8 +61,6 @@ export default function Login() {
           style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.10) 0%, transparent 70%)' }} />
         <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full animate-blob animation-delay-4000"
           style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%)' }} />
-
-        {/* Grid overlay */}
         <div className="absolute inset-0 opacity-[0.025]"
           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
       </div>
@@ -73,7 +72,6 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-5 animate-bounceIn animate-float relative"
             style={{ background: 'linear-gradient(135deg, #f97316, #fb923c)', boxShadow: '0 0 40px rgba(249,115,22,0.5), 0 20px 40px rgba(0,0,0,0.4)' }}>
             <span style={{ fontSize: '2.2rem' }}>🍽️</span>
-            {/* Ring */}
             <div className="absolute inset-0 rounded-3xl border-2 border-orange-400/50 animate-glow" />
           </div>
           <h1 className="text-4xl font-black text-white tracking-tight leading-none">
@@ -113,8 +111,9 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="off"
                   placeholder="you@example.com"
-                  className="input-dark pl-12"
+                  className="input-dark pl-10"
                 />
               </div>
             </div>
@@ -133,8 +132,9 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="new-password"
                   placeholder="••••••••"
-                  className="input-dark pl-12 pr-12"
+                  className="input-dark pl-10 pr-10"
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-80 transition-opacity">
@@ -191,21 +191,20 @@ export default function Login() {
                 `}
                 title={d.email}
               >
-                {/* Gradient BG pill on active */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${d.grad} opacity-${activeDemo === d.role ? '15' : '0'} hover:opacity-10 transition-opacity`} />
-                <span className="text-xl relative">{d.icon}</span>
+                <div className="relative flex items-center justify-center">{d.icon}</div>
                 <span className="text-xs font-bold text-white/80 relative">{d.role}</span>
               </button>
             ))}
           </div>
 
-          <p className="text-center text-xs mt-3 animate-fadeInUp delay-500" style={{ color: 'var(--text-muted)' }}>
-            Click a role then <strong className="text-white/50">Sign in</strong>
+          <p className="text-center text-xs mt-3 animate-fadeInUp delay-500" style={{ color: 'rgba(255,255,255,0.7)' }}>
+            Click a role then <strong style={{ color: '#f97316' }}>Sign in</strong>
           </p>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs mt-6 animate-fadeInUp delay-500" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-center text-xs mt-6 animate-fadeInUp delay-500" style={{ color: 'rgba(255,255,255,0.7)' }}>
           © 2026 Canteen Management System · Built with ❤️
         </p>
       </div>

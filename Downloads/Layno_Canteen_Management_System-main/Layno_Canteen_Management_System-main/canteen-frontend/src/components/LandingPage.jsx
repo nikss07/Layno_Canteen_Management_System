@@ -452,7 +452,7 @@ export default function LandingPage() {
       <section id="about" style={{ padding:'80px 40px', background:'#fdf4ed' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', gap:60, flexWrap:'wrap', alignItems:'center' }}>
           <div style={{ flex:'1', minWidth:280 }}>
-            <img src="/Filipino_favorites.jpg" alt="About JKM Canteen"
+            <img src="/Filipino favorites.jpg" alt="About JKM Canteen"
               style={{ width:'100%', borderRadius:24, boxShadow:'0 12px 48px rgba(249,115,22,0.2)', objectFit:'cover', maxHeight:400 }} />
           </div>
           <div style={{ flex:'1', minWidth:280 }}>

@@ -221,22 +221,32 @@ body {
     transform: translateY(-2px);
   }
 
-  /* ── Custom inputs (dark) ── */
+/* ── Custom inputs (dark) ── */
   .input-dark {
-    background: var(--surface-3);
-    border: 1px solid var(--glass-border);
-    color: var(--text-primary);
+    background: var(--surface-3) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-primary) !important;
     border-radius: 0.75rem;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
-    font-size: 0.875rem;
+    font-size: 0.875rem !important;
     transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
     width: 100%;
   }
   .input-dark::placeholder { color: var(--text-muted); }
   .input-dark:focus {
-    border-color: var(--accent);
+    border-color: var(--accent) !important;
     box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+  }
+  .input-dark:-webkit-autofill,
+  .input-dark:-webkit-autofill:hover,
+  .input-dark:-webkit-autofill:focus,
+  .input-dark:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px #1e2330 inset !important;
+    -webkit-text-fill-color: #f1f3f8 !important;
+    caret-color: #f1f3f8 !important;
+    border-color: rgba(255,255,255,0.09) !important;
+    font-size: 0.875rem !important;
   }
 
   /* ── Btn accent ── */

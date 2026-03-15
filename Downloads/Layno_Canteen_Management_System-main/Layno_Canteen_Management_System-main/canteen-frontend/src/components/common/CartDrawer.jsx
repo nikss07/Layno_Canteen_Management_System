@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 
+const BASE_URL = 'http://localhost:8000';
+
 export default function CartDrawer({ isOpen, onClose }) {
   const { items, removeItem, updateQuantity, clearCart, total } = useCart();
   const [submitting, setSubmitting] = useState(false);
@@ -79,7 +81,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                 <div key={item.id} className="group relative flex gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 animate-fadeInRight"
                   style={{ animationDelay: `${idx * 50}ms` }}>
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-white/10" />
+                    <img src={`${BASE_URL}${item.image}`} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-white/10" />
                   ) : (
                     <div className="w-16 h-16 rounded-xl bg-orange-500/10 flex items-center justify-center text-2xl border border-orange-500/20">🍽️</div>
                   )}
