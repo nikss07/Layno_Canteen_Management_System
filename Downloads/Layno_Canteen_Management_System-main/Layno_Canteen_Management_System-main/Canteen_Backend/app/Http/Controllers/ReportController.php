@@ -8,19 +8,59 @@ use Illuminate\Support\Facades\DB;
 class ReportController extends Controller
 {  
     public function index()
-    {
-        $total_sales = Order::where('status', 'completed')->sum('total_amount');
-        $total_orders = Order::count();
-        $avg_order_value = Order::where('status', 'completed')->avg('total_amount') ?? 0;
-        $today_orders = Order::whereDate('created_at', today())->count();
+{
+    // Revenue - all non-cancelled orders
+    $total_sales = Order::whereNotIn('status', ['cancelled'])->sum('total_amount');
+    $total_orders = Order::count();
+    $avg_order_value = Order::whereNotIn('status', ['cancelled'])->avg('total_amount') ?? 0;
+    $today_orders = Order::whereDate('created_at', today())->count();
 
-        return response()->json([
-            'total_sales' => $total_sales,
-            'total_orders' => $total_orders,
-            'avg_order_value' => $avg_order_value,
-            'today_orders' => $today_orders,
-        ]);
-    }
+    // Trends - this month vs last month
+    $this_month_sales = Order::whereNotIn('status', ['cancelled'])
+        ->whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)
+        ->sum('total_amount');
+
+    $last_month_sales = Order::whereNotIn('status', ['cancelled'])
+        ->whereMonth('created_at', now()->subMonth()->month)
+        ->whereYear('created_at', now()->subMonth()->year)
+        ->sum('total_amount');
+
+    $this_month_orders = Order::whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)
+        ->count();
+
+    $last_month_orders = Order::whereMonth('created_at', now()->subMonth()->month)
+        ->whereYear('created_at', now()->subMonth()->year)
+        ->count();
+
+    $today_orders_count = Order::whereDate('created_at', today())->count();
+    $yesterday_orders = Order::whereDate('created_at', today()->subDay())->count();
+
+    $sales_trend = $last_month_sales > 0
+        ? round((($this_month_sales - $last_month_sales) / $last_month_sales) * 100, 1)
+        : 0;
+
+    $orders_trend = $last_month_orders > 0
+        ? round((($this_month_orders - $last_month_orders) / $last_month_orders) * 100, 1)
+        : 0;
+
+    $today_trend = $yesterday_orders > 0
+        ? round((($today_orders_count - $yesterday_orders) / $yesterday_orders) * 100, 1)
+        : 0;
+
+    return response()->json([
+        'total_sales'     => $total_sales,
+        'total_orders'    => $total_orders,
+        'avg_order_value' => $avg_order_value,
+        'today_orders'    => $today_orders,
+        'trends' => [
+            'sales'        => $sales_trend,
+            'orders'       => $orders_trend,
+            'today_orders' => $today_trend,
+        ]
+    ]);
+}
     public function sales(Request $request)
     {
         $period = $request->period ?? 'daily';
