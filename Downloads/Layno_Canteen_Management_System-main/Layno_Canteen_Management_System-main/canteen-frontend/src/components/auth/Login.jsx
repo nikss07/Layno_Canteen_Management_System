@@ -47,7 +47,7 @@ export default function Login() {
   return (
     <div className="min-h-screen mesh-bg flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        backgroundImage: 'linear-gradient(rgba(17, 19, 24, 0.4), rgba(17, 19, 24, 0.5)), url("http://localhost:8000/images/login-bg.jpg")',
+        backgroundImage: 'linear-gradient(rgba(17, 19, 24, 0.4), rgba(17, 19, 24, 0.5)), url("/food-bg.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}>
@@ -114,7 +114,7 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="you@example.com"
-                  className="input-dark pl-10"
+                  className="input-dark pl-12"
                 />
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="input-dark pl-10 pr-10"
+                  className="input-dark pl-12 pr-12"
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-80 transition-opacity">
