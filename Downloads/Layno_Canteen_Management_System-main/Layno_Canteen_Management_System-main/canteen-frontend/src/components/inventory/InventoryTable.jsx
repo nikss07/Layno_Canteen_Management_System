@@ -8,6 +8,7 @@ import api from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import LowStockAlert from './LowStockAlert';
 
+const BASE_URL = 'http://localhost:8000';
 const stockInfo = (qty) => {
   if (qty <=  5) return { label:'Critical', badge:'bg-red-100 text-red-700',       bar:'bg-red-500',    pct: Math.min((qty/50)*100, 100) };
   if (qty <= 10) return { label:'Low',      badge:'bg-yellow-100 text-yellow-700', bar:'bg-yellow-500', pct: Math.min((qty/50)*100, 100) };
@@ -35,13 +36,13 @@ export default function InventoryTable() {
   const handleRestock = async (id) => {
     if (!qty || isNaN(qty) || +qty <= 0) return alert('Enter a valid quantity.');
     try {
-      await api.post(`/inventory/${id}/restock`, { quantity: parseInt(qty) });
+      await api.patch(`/inventory/${id}/adjust`, { change: parseInt(qty), reason: 'Restock' });
       setRestockId(null); setQty('');
       fetchItems();
     } catch (e) { alert(e.response?.data?.message || 'Restock failed.'); }
   };
 
-  const lowStock = items.filter((i) => i.stock_quantity <= 10);
+  const lowStock = items.filter((i) => i.stock <= 10);
 
   return (
     <div className="p-4 lg:p-6">
@@ -52,8 +53,8 @@ export default function InventoryTable() {
           <p className="text-gray-400 text-sm mt-0.5">{items.length} items tracked</p>
         </div>
         <button onClick={fetchItems}
-          className="px-4 py-2 bg-orange-50 text-orange-600 rounded-xl text-sm font-semibold hover:bg-orange-100 transition-colors border border-orange-200">
-          🔄 Refresh
+         className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-black text-white hover:bg-white/10 transition-all flex items-center gap-2">
+          <span>🔄</span> Refresh Now
         </button>
       </div>
 
@@ -73,7 +74,7 @@ export default function InventoryTable() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {items.map((item, i) => {
-                const info = stockInfo(item.stock_quantity);
+                const info = stockInfo(item.stock);
                 return (
                   <tr key={item.id}
                     className="hover:bg-orange-50/30 transition-colors animate-fadeInUp"
@@ -84,7 +85,7 @@ export default function InventoryTable() {
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border border-orange-100">
                           {item.image
-                            ? <img src={item.image} alt="" className="w-full h-full object-cover" />
+                            ? <img src={`${BASE_URL}${item.image}`} alt="" className="w-full h-full object-cover" />
                             : <span className="text-lg">🍽️</span>
                           }
                         </div>
@@ -106,7 +107,7 @@ export default function InventoryTable() {
                             className="px-2 py-1.5 bg-gray-100 text-gray-400 text-xs rounded-lg hover:bg-gray-200 transition-colors font-bold">✕</button>
                         </div>
                       ) : (
-                        <span className="font-extrabold text-gray-800">{item.stock_quantity}</span>
+                        <span className="font-regular text-gray-600">{item.stock ?? 0}</span>
                       )}
                     </td>
 
