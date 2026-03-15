@@ -404,7 +404,6 @@ export default function LandingPage() {
               <hr style={{ border:'none', borderTop:'1px solid #f5e6da', margin:'20px 0' }}/>
               <p style={{ color:'#6b6b6b', fontSize:15, lineHeight:1.8 }}>
                 🕐 <strong>Mon–Sat:</strong> 6:00 AM – 8:00 PM<br/>
-                🕐 <strong>Sunday:</strong> 7:00 AM – 5:00 PM
               </p>
             </div>
           </div>
