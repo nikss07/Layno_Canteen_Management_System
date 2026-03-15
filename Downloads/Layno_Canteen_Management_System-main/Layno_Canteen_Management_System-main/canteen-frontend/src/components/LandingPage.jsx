@@ -460,13 +460,13 @@ export default function LandingPage() {
               About <span style={{ color:'#f97316' }}>JKM Canteen</span>
             </h2>
             <p style={{ color:'#6b6b6b', fontSize:16, lineHeight:1.8, marginBottom:16 }}>
-              Established in 2018, JKM Canteen has been proudly serving delicious, home-cooked Filipino meals to students, teachers, and staff. We believe that good food brings people together.
+              Established in 2023, JKM Canteen has been proudly serving delicious, home-cooked Filipino meals to students, teachers, and staff. We believe that good food brings people together.
             </p>
             <p style={{ color:'#6b6b6b', fontSize:16, lineHeight:1.8, marginBottom:24 }}>
               From hearty rice meals to refreshing beverages and sweet desserts, everything we serve is made with love and the freshest ingredients. Our mission is simple — to make every meal feel like home.
             </p>
             <div style={{ display:'flex', gap:24, flexWrap:'wrap' }}>
-              {[['500+','Happy Customers'], ['50+','Menu Items'], ['6','Years of Service']].map(([num, label]) => (
+              {[['500+','Happy Customers'], ['50+','Menu Items'], ['3','Years of Service']].map(([num, label]) => (
                 <div key={label} style={{ textAlign:'center' }}>
                   <p style={{ fontSize:32, fontWeight:900, color:'#f97316', margin:0 }}>{num}</p>
                   <p style={{ fontSize:13, color:'#6b6b6b', margin:0, fontWeight:600 }}>{label}</p>
