@@ -33,7 +33,7 @@ export default function MenuForm({ item, onSuccess, onClose }) {
 
     if (item) {
       setForm({ name: item.name, description: item.description || '', price: item.price, stock: item.stock || 0, category_id: item.category_id || (item.category?.id) || '', is_available: item.is_available, image: null });
-      setPreview(item.image || null);
+      setPreview(item.image ? `http://localhost:8000${item.image}` : null);
     }
   }, [item]);
 
