@@ -9,6 +9,8 @@ import { useCart } from '../../context/CartContext';
 import OrderReceipt from './OrderReceipt';
 import LoadingSpinner from '../common/LoadingSpinner';
 
+const BASE_URL = 'http://localhost:8000';
+
 export default function POSInterface() {
   const [items, setItems]       = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -80,7 +82,7 @@ export default function POSInterface() {
                 >
                   <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-black/20 border border-white/5">
                     {item.image
-                      ? <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      ? <img src={`${BASE_URL}${item.image}`} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       : <div className="w-full h-full flex items-center justify-center text-4xl bg-orange-500/5 text-orange-500/20">🍽️</div>
                     }
                   </div>

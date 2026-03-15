@@ -10,7 +10,7 @@ import MenuItemCard from './MenuItemCard';
 import MenuForm from './MenuForm';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-const CATS = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Beverages', 'Desserts'];
+const CATS = ['All', 'Meals', 'Combos', 'Snacks', 'Beverages', 'Desserts'];
 
 export default function MenuList() {
   const [items, setItems]       = useState([]);
