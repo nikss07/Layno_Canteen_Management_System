@@ -10,6 +10,7 @@ use App\Http\Controllers\ReportController;
 
 // Public routes
 Route::prefix('auth')->group(function () {
+    Route::get('/menu-items', [MenuController::class, 'index']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
