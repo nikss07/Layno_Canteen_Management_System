@@ -44,7 +44,7 @@ export default function OrderQueue() {
   };
 
   const handleCancel = async (id) => {
-    if (window.confirm('Are you sure you want to cancel this order?')) return;
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
     try {
       await orderService.cancelOrder(id);
       fetchOrders();
