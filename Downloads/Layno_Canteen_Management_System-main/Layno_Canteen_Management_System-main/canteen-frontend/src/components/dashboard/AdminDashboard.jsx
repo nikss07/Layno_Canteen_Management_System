@@ -27,7 +27,7 @@ const CARDS = [
   },
   {
     icon: '📊', label: 'Avg. Order Value', key: 'avg_order_value',
-    format: (v) => `₱${(v || 0).toFixed(2)}`,
+    format: (v) => `₱${(parseFloat(v) || 0).toFixed(2)}`,
     sub: 'Per transaction',
     color: '#34d399', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.25)',
     trend: '+3.1%', trendUp: true,

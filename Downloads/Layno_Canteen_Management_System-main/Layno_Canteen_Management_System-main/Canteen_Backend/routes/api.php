@@ -9,15 +9,18 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ReportController;
 
 // Public routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-
+ 
+    Route::prefix('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
-
+});
     // Menu & Categories (all authenticated users)
     Route::get('/menu-items', [MenuController::class, 'index']);
     Route::get('/menu-items/{menuItem}', [MenuController::class, 'show']);
@@ -53,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/inventory/logs', [InventoryController::class, 'logs']);
 
         // Reports
+        Route::get('/reports', [ReportController::class, 'index']);
         Route::get('/reports/sales', [ReportController::class, 'sales']);
         Route::get('/reports/top-items', [ReportController::class, 'topItems']);
         Route::get('/reports/category-breakdown', [ReportController::class, 'categoryBreakdown']);

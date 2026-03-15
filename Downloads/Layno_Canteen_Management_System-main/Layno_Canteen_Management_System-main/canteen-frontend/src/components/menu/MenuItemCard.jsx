@@ -42,7 +42,7 @@ export default function MenuItemCard({ item, onEdit, onDelete, delay = 0 }) {
       <div className="relative h-44 overflow-hidden"
         style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(251,146,60,0.05))' }}>
         {item.image
-          ? <img src={item.image} alt={item.name}
+          ? <img src={`http://localhost:8000${item.image}`} alt={item.name}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
           : <div className="w-full h-full flex items-center justify-center text-6xl select-none group-hover:scale-110 transition-transform duration-300">🍽️</div>
         }

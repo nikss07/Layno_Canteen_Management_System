@@ -6,7 +6,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
-{
+{  
+    public function index()
+    {
+        $total_sales = Order::where('status', 'completed')->sum('total_amount');
+        $total_orders = Order::count();
+        $avg_order_value = Order::where('status', 'completed')->avg('total_amount') ?? 0;
+        $today_orders = Order::whereDate('created_at', today())->count();
+
+        return response()->json([
+            'total_sales' => $total_sales,
+            'total_orders' => $total_orders,
+            'avg_order_value' => $avg_order_value,
+            'today_orders' => $today_orders,
+        ]);
+    }
     public function sales(Request $request)
     {
         $period = $request->period ?? 'daily';
